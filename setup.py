@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 import pybitx
 
 setup(
-    name='mypackage',
+    name='pybitx',
     version=pybitx.__version__,
     packages=find_packages(exclude=['tests']),
     description='A BitX API for Python',
