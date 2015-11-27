@@ -79,19 +79,27 @@ class BitX:
     def get_all_tickers(self, kind='auth'):
         return self.api_request('tickers', None, kind=kind)
 
-    def get_order_book(self, kind='auth'):
+    def get_order_book(self, limit=None, kind='auth'):
         params = {'pair': self.pair}
-        return self.api_request('orderbook', params, kind=kind)
+        orders = self.api_request('orderbook', params, kind=kind)
+        if limit is not None:
+            orders['bids'] = orders['bids'][:limit]
+            orders['asks'] = orders['asks'][:limit]
+        return orders
 
-    def get_trades(self, kind='auth'):
+    def get_trades(self, limit=None, kind='auth'):
         params = {'pair': self.pair}
-        return self.api_request('trades', params, kind=kind)
+        trades = self.api_request('trades', params, kind=kind)
+        if limit is not None:
+            trades['trades'] = trades['trades'][:limit]
+        return trades
 
     def get_orders(self, state=None, kind='auth'):
         """
         Returns a list of the most recently placed orders. You can specify an optional state='PENDING' parameter to
         restrict the results to only open orders. You can also specify the market by using the optional pair parameter.
         The list is truncated after 100 items.
+        :param kind: typically 'auth' if you want this to return anything useful
         :param state: String optional 'COMPLETE', 'PENDING', or None (default)
         :return:
         """
@@ -142,4 +150,3 @@ class BitX:
 
     def get_pending_transactions(self, account_id):
         return self.api_request('accounts/%s/pending' % (account_id,), None)
-

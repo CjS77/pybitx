@@ -1,14 +1,8 @@
 import unittest
 import requests_mock
 import api
-from api import BitX, BitXAPIError
+from pybitx.api import BitX, BitXAPIError
 import base64
-
-
-def make_auth_header(auth):
-    s = ':'.join(auth)
-    k = base64.b64encode(s)
-    return 'Basic %s' % (k,)
 
 
 class TestBitX(unittest.TestCase):
@@ -68,6 +62,13 @@ class TestBitX(unittest.TestCase):
 
 
 class TestAPICalls(unittest.TestCase):
+
+    @staticmethod
+    def make_auth_header(auth):
+        s = ':'.join(auth)
+        k = base64.b64encode(s)
+        return 'Basic %s' % (k,)
+
     def setUp(self):
         options = {
             'hostname': 'api.dummy.com',
@@ -76,7 +77,7 @@ class TestAPICalls(unittest.TestCase):
         key = 'mykey'
         secret = 'mysecret'
         self.api = BitX(key, secret, options)
-        self.auth_string = make_auth_header(self.api.auth)
+        self.auth_string = TestAPICalls.make_auth_header(self.api.auth)
 
     @requests_mock.Mocker()
     def testHeaders(self, m):
@@ -160,6 +161,23 @@ class TestAPICalls(unittest.TestCase):
         m.get('https://api.dummy.com/api/1/orderbook', json=response)
         result = self.api.get_order_book()
         self.assertDictEqual(result, response)
+        result = self.api.get_order_book(1)
+        self.assertDictEqual(result, {
+            "timestamp": 1366305398592,
+            "bids": [
+                {
+                    "volume": "0.10",
+                    "price": "1100.00"
+                }
+            ],
+            "asks": [
+                {
+                    "volume": "0.10",
+                    "price": "1180.00"
+                }
+            ]
+        })
+
 
     @requests_mock.Mocker()
     def testTrades(self, m):
@@ -180,6 +198,8 @@ class TestAPICalls(unittest.TestCase):
         m.get('https://api.dummy.com/api/1/trades', json=response)
         result = self.api.get_trades()
         self.assertDictEqual(result, response)
+        result = self.api.get_trades(1)
+        self.assertDictEqual(result, {"trades": [response['trades'][0]]} )
 
     @requests_mock.Mocker()
     def testListOrdersAuth(self, m):
