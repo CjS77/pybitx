@@ -1,11 +1,9 @@
 import requests
 import logging
 from concurrent.futures import ThreadPoolExecutor
+from pybitx import __version__
 
 log = logging.getLogger(__name__)
-
-__version__ = '0.1.0'
-
 
 # --------------------------- constants -----------------------
 
