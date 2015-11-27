@@ -1,7 +1,9 @@
 import requests
 import logging
 from concurrent.futures import ThreadPoolExecutor
-from pybitx import __version__
+from meta import version
+
+__version__ = version
 
 log = logging.getLogger(__name__)
 
