@@ -128,3 +128,18 @@ class BitX:
         if wid is not None:
             call += '/%s' % (wid,)
         return self.api_request(call, None)
+
+    def get_balance(self):
+        return self.api_request('balance', None)
+
+    def get_transactions(self, account_id, min_row=None, max_row=None):
+        params = {}
+        if min_row is not None:
+            params['min_row'] = min_row
+        if max_row is not None:
+            params['max_row'] = max_row
+        return self.api_request('accounts/%s/transactions' % (account_id,), params)
+
+    def get_pending_transactions(self, account_id):
+        return self.api_request('accounts/%s/pending' % (account_id,), None)
+

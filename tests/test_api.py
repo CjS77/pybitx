@@ -287,6 +287,92 @@ class TestAPICalls(unittest.TestCase):
         result = self.api.get_withdrawals_status("1121")
         self.assertDictEqual(result, response)
 
+    @requests_mock.Mocker()
+    def testBalance(self, m):
+        response = {
+            "balance": [
+                {
+                    "account_id": "1224342323",
+                    "asset": "XBT",
+                    "balance": "1.012423",
+                    "reserved": "0.01",
+                    "unconfirmed": "0.421",
+                    "name": "XBT Account"
+                },
+                {
+                    "account_id": "2997473",
+                    "asset": "ZAR",
+                    "balance": "1000.00",
+                    "reserved": "0.00",
+                    "unconfirmed": "0.00",
+                    "name": "ZAR Account"
+                }
+            ]
+        }
+        url = 'https://api.dummy.com/api/1/balance'
+        m.get(url, json=response, request_headers={'Authorization': self.auth_string})
+        result = self.api.get_balance()
+        self.assertDictEqual(result, response)
+
+    @requests_mock.Mocker()
+    def testTransactions(self, m):
+        trec = [
+            {
+                "row_index": 2,
+                "timestamp": 1429908835000,
+                "balance": 0.08,
+                "available": 0.08,
+                "balance_delta": -0.02,
+                "available_delta": -0.02,
+                "currency": "XBT",
+                "description": "Sold 0.02 BTC"
+            },
+            {
+                "row_index": 1,
+                "timestamp": 1429908701000,
+                "balance": 0.1,
+                "available": 0.1,
+                "balance_delta": 0.1,
+                "available_delta": 0.1,
+                "currency": "XBT",
+                "description": "Bought 0.1 BTC"
+            }
+        ]
+        url = 'https://api.dummy.com/api/1/accounts/319232323/transactions'
+        m.get(url, json={"id": "319232323", "transactions": trec}, request_headers={'Authorization': self.auth_string})
+        m.get(url+'?max_row=1', json={"id": "319232323", "transactions": [trec[0]]}, request_headers={'Authorization': self.auth_string})
+        m.get(url+'?min_row=2', json={"id": "319232323", "transactions": [trec[1]]}, request_headers={'Authorization': self.auth_string})
+        result = self.api.get_transactions('319232323')
+        self.assertDictEqual(result, {"id": "319232323", "transactions": trec})
+        result = self.api.get_transactions('319232323', max_row=1)
+        self.assertDictEqual(result, {"id": "319232323", "transactions": [trec[0]]})
+        result = self.api.get_transactions('319232323', 1, 1)
+        self.assertDictEqual(result, {"id": "319232323", "transactions": [trec[0]]})
+        result = self.api.get_transactions('319232323', min_row=2)
+        self.assertDictEqual(result, {"id": "319232323", "transactions": [trec[1]]})
+        result = self.api.get_transactions('319232323', 2, 2)
+        self.assertDictEqual(result, {"id": "319232323", "transactions": [trec[1]]})
+
+    @requests_mock.Mocker()
+    def testPending(self, m):
+        response = {
+            "id": "319232323",
+            "pending": [
+                {
+                    "timestamp": 1429908835000,
+                    "balance": 0.03,
+                    "available": 0.03,
+                    "balance_delta": 0.03,
+                    "available_delta": 0.03,
+                    "currency": "XBT",
+                    "description": "Received Bitcoin - 1 of 3 confirmations"
+                }
+            ]
+        }
+        url = 'https://api.dummy.com/api/1/accounts/319232323/pending'
+        m.get(url, json=response, request_headers={'Authorization': self.auth_string})
+        result = self.api.get_pending_transactions('319232323')
+        self.assertDictEqual(result, response)
 
 def main():
     unittest.main()
