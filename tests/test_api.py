@@ -78,7 +78,6 @@ class TestAPICalls(unittest.TestCase):
         self.api = BitX(key, secret, options)
         self.auth_string = make_auth_header(self.api.auth)
 
-
     @requests_mock.Mocker()
     def testHeaders(self, m):
         headers = {
@@ -218,6 +217,75 @@ class TestAPICalls(unittest.TestCase):
         except BitXAPIError as e:
             self.assertEqual(e.code, 401)
             self.assertEqual(e.url, url)
+
+    @requests_mock.Mocker()
+    def testListOrdersAuth(self, m):
+        response = {
+            "order_id": "BXHW6PFRRXKFSB4",
+            "creation_timestamp": 1402866878367,
+            "expiration_timestamp": 0,
+            "type": "ASK",
+            "state": "PENDING",
+            "limit_price": "6500.00",
+            "limit_volume": "0.05",
+            "base": "0.03",
+            "counter": "195.02",
+            "fee_base": "0.000",
+            "fee_counter": "0.00",
+            "trades": [
+                {
+                    "price": "6501.00",
+                    "timestamp": 1402866878467,
+                    "volume": "0.02"
+                },
+                {
+                    "price": "6500.00",
+                    "timestamp": 1402866878567,
+                    "volume": "0.01"
+                }
+            ],
+        }
+        url = 'https://api.dummy.com/api/1/orders/BXHW6PFRRXKFSB4'
+        m.get(url, json=response, request_headers={'Authorization': self.auth_string})
+        result = self.api.get_order('BXHW6PFRRXKFSB4')
+        self.assertDictEqual(result, response)
+
+    @requests_mock.Mocker()
+    def testFundingAddresses(self, m):
+        response = {"asset": "XBT", "address": "1GVZeHQVCkJfKLz2pL5LiPeAKwdMXrgoNs", "name": "",
+                    "account_id": "123456", "assigned_at": 1412659801000, "total_received": "0.67",
+                    "total_unconfirmed": "0.00"}
+        url = 'https://api.dummy.com/api/1/funding_address?asset=XBT'
+        m.get(url, json=response, request_headers={'Authorization': self.auth_string})
+        result = self.api.get_funding_address('XBT')
+        self.assertDictEqual(result, response)
+
+    @requests_mock.Mocker()
+    def testWithdrawalsStatus(self, m):
+        response = {
+            "withdrawals": [
+                {
+                    "status": "PENDING",
+                    "id": "2221"
+                },
+                {
+                    "status": "COMPLETED",
+                    "id": "1121"
+                }
+            ]
+        }
+        url = 'https://api.dummy.com/api/1/withdrawals'
+        m.get(url, json=response, request_headers={'Authorization': self.auth_string})
+        result = self.api.get_withdrawals_status()
+        self.assertDictEqual(result, response)
+
+    @requests_mock.Mocker()
+    def testWithdrawalsStatus(self, m):
+        response = {"status": "COMPLETED", "id": "1121"}
+        url = 'https://api.dummy.com/api/1/withdrawals/1121'
+        m.get(url, json=response, request_headers={'Authorization': self.auth_string})
+        result = self.api.get_withdrawals_status("1121")
+        self.assertDictEqual(result, response)
 
 
 def main():

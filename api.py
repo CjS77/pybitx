@@ -44,10 +44,10 @@ class BitX:
         log.info('MultiThreadPool has shutdown')
 
     def construct_url(self, call):
-            base = self.hostname
-            if self.port != 443:
-                base += ':%d' % (self.port,)
-            return "https://%s/api/1/%s" % (base, call)
+        base = self.hostname
+        if self.port != 443:
+            base += ':%d' % (self.port,)
+        return "https://%s/api/1/%s" % (base, call)
 
     def api_request(self, call, params, kind='auth'):
         """
@@ -99,3 +99,32 @@ class BitX:
         if state is not None:
             params['state'] = state
         return self.api_request('listorders', params, kind=kind)
+
+    def get_order(self, order_id):
+        """
+        Get an order by its ID
+        :param order_id: string	The order ID
+        :return: dict order details or BitXAPIError raised
+        """
+        return self.api_request('orders/%s' % (order_id,), None)
+
+    def get_funding_address(self, asset):
+        """
+        Returns the default receive address associated with your account and the amount received via the address. You
+        can specify an optional address parameter to return information for a non-default receive address. In the
+        response, total_received is the total confirmed Bitcoin amount received excluding unconfirmed transactions.
+        total_unconfirmed is the total sum of unconfirmed receive transactions.
+        :param asset: For now, only XBT is valid
+        :return: dict
+        """
+        return self.api_request('funding_address', {'asset': asset})
+
+    def get_withdrawals_status(self, wid=None):
+        """
+        :param wid: String. Optional withdrawal id. None queries for all ids
+        :return:
+        """
+        call = 'withdrawals'
+        if wid is not None:
+            call += '/%s' % (wid,)
+        return self.api_request(call, None)
