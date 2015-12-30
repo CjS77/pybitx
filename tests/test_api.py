@@ -394,6 +394,20 @@ class TestAPICalls(unittest.TestCase):
         result = self.api.get_pending_transactions('319232323')
         self.assertDictEqual(result, response)
 
+    @requests_mock.Mocker()
+    def testCreateOrder(self, m):
+        response = {
+            "order_id": "BXMC2CJ7HNB88U4"
+        }
+        url = 'https://api.dummy.com/api/1/postorder'
+        m.post(url, json=response, request_headers={'Authorization': self.auth_string})
+        result = self.api.create_limit_order('buy', 0.1, 500)
+        data = {s.split('=')[0]:s.split('=')[1] for s in m.request_history[0].text.split('&')}
+        self.assertEqual(data['pair'], 'XBTZAR')
+        self.assertEqual(data['volume'], '0.1')
+        self.assertEqual(data['price'], '500')
+        self.assertDictEqual(result, response)
+
 def main():
     unittest.main()
 

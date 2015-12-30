@@ -2,6 +2,7 @@ import requests
 import logging
 from concurrent.futures import ThreadPoolExecutor
 from meta import version
+import pandas as pd
 
 __version__ = version
 
@@ -49,7 +50,7 @@ class BitX:
             base += ':%d' % (self.port,)
         return "https://%s/api/1/%s" % (base, call)
 
-    def api_request(self, call, params, kind='auth'):
+    def api_request(self, call, params, kind='auth', http_call='get'):
         """
         General API request. Generally, use the convenience functions below
         :param kind: the type of request to make. 'auth' makes an authenticated call; 'basic' is unauthenticated
@@ -58,11 +59,13 @@ class BitX:
         :return: a json response, a BitXAPIError is thrown if the api returns with an error
         """
         url = self.construct_url(call)
-        if kind == 'auth':
-            future = self._executor.submit(requests.get, url, params, headers=self.headers, auth=self.auth)
+        auth = self.auth if kind == 'auth' else None
+        if http_call == 'get':
+            response = requests.get(url, params, headers=self.headers, auth=auth)
+        elif http_call == 'post':
+            response = requests.post(url, data = params, headers=self.headers, auth=auth)
         else:
-            future = self._executor.submit(requests.get, url, params, headers=self.headers)
-        response = future.result(timeout=self.timeout)
+            raise ValueError('Invalid http_call parameter')
         try:
             result = response.json()
         except ValueError:
@@ -87,12 +90,27 @@ class BitX:
             orders['asks'] = orders['asks'][:limit]
         return orders
 
+    def get_order_book_frame(self, limit=None, kind='auth'):
+        q = self.get_order_book(limit, kind)
+        asks = pd.DataFrame(q['asks'])
+        bids = pd.DataFrame(q['bids'])
+        index = pd.MultiIndex.from_product([('asks', 'bids'),('price', 'volume')])
+        df = pd.DataFrame(pd.concat([asks, bids], axis=1).values, columns=index)
+        return df
+
     def get_trades(self, limit=None, kind='auth'):
         params = {'pair': self.pair}
         trades = self.api_request('trades', params, kind=kind)
         if limit is not None:
             trades['trades'] = trades['trades'][:limit]
         return trades
+
+    def get_trades_frame(self, limit=None, kind='auth'):
+        trades = self.get_trades(limit, kind)
+        df = pd.DataFrame(trades['trades'])
+        df.index = pd.to_datetime(df.timestamp * 1e-3, unit='s')
+        df.drop('timestamp', axis=1, inplace=True)
+        return df
 
     def get_orders(self, state=None, kind='auth'):
         """
@@ -115,6 +133,39 @@ class BitX:
         :return: dict order details or BitXAPIError raised
         """
         return self.api_request('orders/%s' % (order_id,), None)
+
+    def get_orders_frame(self, state=None, kind='auth'):
+        q = self.get_orders(state, kind)
+        return pd.DataFrame(q['orders'])
+
+    def create_limit_order(self, type, volume, price):
+        """
+        Create a new limit order
+        :param type: 'buy' or 'sell'
+        :param volume: the volume, in BTC
+        :param price: the ZAR price per bitcoin
+        :return: the order id
+        """
+        data = {
+            'pair': self.pair,
+            'type': 'BID' if type == 'buy' else 'ask',
+            'volume': str(volume),
+            'price': str(price)
+
+        }
+        result = self.api_request('postorder', params=data, http_call='post')
+        return result
+
+    def stop_order(self, order_id):
+        """
+        Create a new limit order
+        :param order_id: The order ID
+        :return: a success flag
+        """
+        data = {
+            'order_id': order_id,
+        }
+        return self.api_request('stoporder', params=data, http_call='post')
 
     def get_funding_address(self, asset):
         """
