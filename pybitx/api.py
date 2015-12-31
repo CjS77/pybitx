@@ -3,6 +3,7 @@ import logging
 from concurrent.futures import ThreadPoolExecutor
 from meta import version
 import pandas as pd
+import json
 
 __version__ = version
 
@@ -136,7 +137,10 @@ class BitX:
 
     def get_orders_frame(self, state=None, kind='auth'):
         q = self.get_orders(state, kind)
-        return pd.DataFrame(q['orders'])
+        tj = json.dumps(q['orders'])
+        df = pd.read_json(tj, convert_dates=['creation_timestamp', 'expiration_timestamp'])
+        df.index = df.creation_timestamp
+        return df
 
     def create_limit_order(self, type, volume, price):
         """
@@ -148,7 +152,7 @@ class BitX:
         """
         data = {
             'pair': self.pair,
-            'type': 'BID' if type == 'buy' else 'ask',
+            'type': 'BID' if type == 'buy' else 'ASK',
             'volume': str(volume),
             'price': str(price)
 
