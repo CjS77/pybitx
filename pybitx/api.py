@@ -171,6 +171,20 @@ class BitX:
         }
         return self.api_request('stoporder', params=data, http_call='post')
 
+    def stop_all_orders(self):
+        """
+        Stops all pending orders, both sell and buy
+        :return: dict of Boolean -- whether request succeeded or not for each order_id that was pending
+        """
+        pending = self.get_orders('PENDING')['orders']
+        ids = [order['order_id'] for order in pending]
+        result = {}
+        for order_id in ids:
+            status = self.stop_order(order_id)
+            result[id] = status['success']
+        return result
+
+
     def get_funding_address(self, asset):
         """
         Returns the default receive address associated with your account and the amount received via the address. You
