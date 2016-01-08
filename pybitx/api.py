@@ -181,7 +181,7 @@ class BitX:
         result = {}
         for order_id in ids:
             status = self.stop_order(order_id)
-            result[id] = status['success']
+            result[order_id] = status['success']
         return result
 
 
