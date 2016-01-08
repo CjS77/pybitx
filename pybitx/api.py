@@ -1,6 +1,5 @@
 import requests
 import logging
-from concurrent.futures import ThreadPoolExecutor
 from meta import version
 import pandas as pd
 import json
@@ -38,11 +37,9 @@ class BitX:
             'Accept-Charset': 'utf-8',
             'User-Agent': 'py-bitx v' + __version__
         }
-        self._executor = ThreadPoolExecutor(max_workers=5)
 
     def close(self):
         log.info('Asking MultiThreadPool to shutdown')
-        self._executor.shutdown(wait=True)
         log.info('MultiThreadPool has shutdown')
 
     def construct_url(self, call):

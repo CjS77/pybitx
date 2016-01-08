@@ -10,7 +10,6 @@ setup(
     author_email='cayle@nimbustech.biz',
     scripts=['demo.py'],
     install_requires=[
-        'futures>=3.0.3',
         'nose>=1.3.7',
         'requests>=2.8.1',
         'pandas>=0.17.0'
