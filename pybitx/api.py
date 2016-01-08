@@ -217,5 +217,12 @@ class BitX:
             params['max_row'] = max_row
         return self.api_request('accounts/%s/transactions' % (account_id,), params)
 
+    def get_transactions_frame(self, account_id, min_row=None, max_row=None):
+        tx = self.get_transactions(account_id, min_row, max_row)['transactions']
+        df = pd.DataFrame(tx)
+        df.index = pd.to_datetime(df.timestamp, unit='ms')
+        df.drop('timestamp', axis=1, inplace=True)
+        return df
+
     def get_pending_transactions(self, account_id):
         return self.api_request('accounts/%s/pending' % (account_id,), None)
