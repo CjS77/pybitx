@@ -142,17 +142,17 @@ class BitX:
         df.index = df.creation_timestamp
         return df
 
-    def create_limit_order(self, type, volume, price):
+    def create_limit_order(self, order_type, volume, price):
         """
         Create a new limit order
-        :param type: 'buy' or 'sell'
+        :param order_type: 'buy' or 'sell'
         :param volume: the volume, in BTC
         :param price: the ZAR price per bitcoin
         :return: the order id
         """
         data = {
             'pair': self.pair,
-            'type': 'BID' if type == 'buy' else 'ASK',
+            'type': 'BID' if order_type == 'buy' else 'ASK',
             'volume': str(volume),
             'price': str(price)
 
