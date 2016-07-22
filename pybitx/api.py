@@ -33,11 +33,14 @@ class BitX:
         self.pair = options['pair'] if 'pair' in options else 'XBTZAR'
         self.ca = options['ca'] if 'ca' in options else None
         self.timeout = options['timeout'] if 'timeout' in options else 30
-        self.headers = {
+        # Use a Requests session so that we can keep headers and connections
+        # across API requests
+        self._requests_session = requests.Session()
+        self._requests_session.headers.update({
             'Accept': 'application/json',
             'Accept-Charset': 'utf-8',
             'User-Agent': 'py-bitx v' + __version__
-        }
+        })
         self._executor = ThreadPoolExecutor(max_workers=5)
 
     def close(self):
@@ -62,9 +65,9 @@ class BitX:
         url = self.construct_url(call)
         auth = self.auth if kind == 'auth' else None
         if http_call == 'get':
-            response = requests.get(url, params, headers=self.headers, auth=auth)
+            response = self._requests_session.get(url, params = params, auth = auth)
         elif http_call == 'post':
-            response = requests.post(url, data = params, headers=self.headers, auth=auth)
+            response = self._requests_session.post(url, data = params, auth = auth)
         else:
             raise ValueError('Invalid http_call parameter')
         try:
