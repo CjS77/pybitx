@@ -65,9 +65,11 @@ class BitX:
         url = self.construct_url(call)
         auth = self.auth if kind == 'auth' else None
         if http_call == 'get':
-            response = self._requests_session.get(url, params = params, auth = auth)
+            response = self._requests_session.get(
+                url, params = params, auth = auth, timeout = self.timeout)
         elif http_call == 'post':
-            response = self._requests_session.post(url, data = params, auth = auth)
+            response = self._requests_session.post(
+                url, data = params, auth = auth, timeout = self.timeout)
         else:
             raise ValueError('Invalid http_call parameter')
         try:
