@@ -1,11 +1,10 @@
 import requests
 import logging
 from concurrent.futures import ThreadPoolExecutor
-from meta import version
+from pybitx import __version__
 import pandas as pd
 import json
 
-__version__ = version
 
 log = logging.getLogger(__name__)
 

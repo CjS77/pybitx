@@ -1,8 +1,9 @@
+import base64
 import unittest
 import requests_mock
-import api
+
+from pybitx import api
 from pybitx.api import BitX, BitXAPIError
-import base64
 
 
 class TestBitX(unittest.TestCase):

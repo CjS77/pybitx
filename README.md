@@ -1,7 +1,21 @@
 # pybitx
-BitX API for python
+BitX API for python ([See API documentation](https://www.luno.com/en/api)).
 
 # Installation
+```bash
+pip install pybitx
+```
+
+#### For Developers
+Clone this repo and create a virtual environment
+```bash
+git clone https://github.com/CjS77/pybitx
+cd pybitx
+virtualenv -p /usr/bin/python2.7 env
+source env/bin/activate
+pip install -e .[dev]
+python2.7 tests/test_api.py # For good measure
+```
 
 # Usage
 

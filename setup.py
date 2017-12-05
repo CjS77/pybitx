@@ -1,9 +1,25 @@
+import os
+import re
+
 from setuptools import setup, find_packages
-import pybitx
+
+
+# Extract the version from the main package __init__ file
+PATTERN = '__version__\s+=\s+(?P<version>.*)'
+BASE_DIR = os.path.dirname(__file__)
+
+with open(os.path.join(BASE_DIR, 'pybitx/__init__.py'), 'r') as f:
+  match = re.search(PATTERN, f.read())
+
+if match is None:
+    raise ValueError("failed to extract package version")
+
+version = match.groupdict()['version']
+
 
 setup(
     name='pybitx',
-    version=pybitx.__version__,
+    version=version,
     packages=find_packages(exclude=['tests']),
     description='A BitX API for Python',
     author='Cayle Sharrock',
@@ -17,11 +33,9 @@ setup(
     ],
     license='MIT',
     url='https://github.com/CjS77/pybitx',
-    download_url='https://github.com/CjS77/pybitx/tarball/%s' % (pybitx.__version__, ),
+    download_url='https://github.com/CjS77/pybitx/tarball/%s' % (version, ),
     keywords='BitX Bitcoin exchange API',
     classifiers=[],
     test_suite='tests',
-    tests_require=[
-        'requests-mock>=0.7.0'
-    ]
+    extras_require={'dev': ['requests-mock>=0.7.0']}
 )

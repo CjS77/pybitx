@@ -1,4 +1,4 @@
-import meta
-from api import BitX
+__version__ = "0.1.10"
 
-__version__ = meta.version
+
+from api import BitX
